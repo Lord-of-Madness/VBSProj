@@ -1,0 +1,12 @@
+{
+  "name": "behaviors_jiri_maly",
+  "trees": [
+    "Theseus\\Stare_in_the_void.bt"
+  ],
+  "initScripts": [
+    "Theseus\\Theseus.class.lua",
+    "classes.lua"
+  ],
+  "parameters": {},
+  "capabilities": {}
+}
