@@ -76,92 +76,47 @@
         },
         {
           "name": "<unnamed>",
-          "id": "0bbcc97e-fefb-4554-b82b-6bff94464232",
-          "type": "selector",
+          "id": "d7ad6813-fe45-47e7-bf9d-76384af656a4",
+          "type": "sequence",
           "subtrees": [
             {
-              "name": "<unnamed>",
-              "id": "1bdefbdf-8be0-4030-9e1d-dd08a575192e",
-              "type": "scriptAction",
-              "decorators": [
-                {
-                  "id": "31498fed-7042-42f1-b12e-fcd3a210b362",
-                  "type": "scriptCondition",
-                  "name": "Switch to the next corner",
-                  "script": [
-                    "local i = 0",
-                    "for _,point in pairs( loc.circles) do",
-                    "\tif i==loc.NextCorner then",
-                    "\t\tif self:GetPosition():Distance(point)<1 then",
-                    "\t\t\treturn true",
-                    "\t\tend",
-                    "\tend",
-                    "\ti=i+1",
-                    "end",
-                    "return false"
-                  ]
-                }
-              ],
-              "script": [
-                "loc.NextCorner =loc.NextCorner+1",
-                "loc.wait = true"
+              "name": "Move",
+              "id": "7ffe3ee0-2eef-4bd0-93b0-8faa6b43f693",
+              "type": "move",
+              "position": [
+                "local i = 0",
+                "for _,point in pairs( loc.circles) do",
+                "if i==loc.NextCorner then",
+                "return point",
+                "end",
+                "i=i+1",
+                "end",
+                "return self:GetPosition()"
+              ]
+            },
+            {
+              "name": "1s",
+              "id": "edc88a9c-b400-4c15-8650-55c7be24d48e",
+              "type": "wait",
+              "time": [
+                "return 1"
               ]
             },
             {
               "name": "<unnamed>",
-              "id": "0ae48177-d089-4dd6-b321-51ec2d8c3b20",
-              "type": "selector",
-              "subtrees": [
-                {
-                  "name": "<unnamed>",
-                  "id": "afa884f0-daa1-4bc9-9a4e-d86cb1750e65",
-                  "type": "sequence",
-                  "subtrees": [
-                    {
-                      "name": "1s",
-                      "id": "edc88a9c-b400-4c15-8650-55c7be24d48e",
-                      "type": "wait",
-                      "time": [
-                        "return 1"
-                      ]
-                    },
-                    {
-                      "name": "<unnamed>",
-                      "id": "9d3199ad-d477-4a1b-bbf1-96813c017ec0",
-                      "type": "scriptAction",
-                      "script": [
-                        "loc.wait = false"
-                      ]
-                    }
-                  ],
-                  "decorators": [
-                    {
-                      "id": "9309f371-ac69-4e6b-9c88-1f79c2bcfeb8",
-                      "type": "scriptCondition",
-                      "name": "Are we waitng?",
-                      "script": [
-                        "return loc.wait"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "name": "Move",
-                  "id": "7ffe3ee0-2eef-4bd0-93b0-8faa6b43f693",
-                  "type": "move",
-                  "position": [
-                    "local i = 0",
-                    "for _,point in pairs( loc.circles) do",
-                    "if i==loc.NextCorner then",
-                    "return point",
-                    "end",
-                    "i=i+1",
-                    "end",
-                    "return self:GetPosition()"
-                  ]
-                }
-              ],
-              "active": true
+              "id": "1bdefbdf-8be0-4030-9e1d-dd08a575192e",
+              "type": "scriptAction",
+              "script": [
+                "local i = 0",
+                "for _,point in pairs( loc.circles) do",
+                "\tif i==loc.NextCorner then",
+                "\t\tif self:GetPosition():Distance(point)<1 then",
+                "\t\t\tloc.NextCorner =loc.NextCorner+1",
+                "\t\tend",
+                "\tend",
+                "\ti=i+1",
+                "end"
+              ]
             }
           ],
           "decorators": [
@@ -178,13 +133,7 @@
                 "return false"
               ]
             }
-          ],
-          "active": true
-        },
-        {
-          "name": "Wait Forever",
-          "id": "6f454332-3cfa-403a-b418-1f5b33e7b248",
-          "type": "waitForever"
+          ]
         }
       ],
       "active": true
@@ -264,6 +213,78 @@
       ]
     }
   ],
+  "unlinked-trees": [
+    {
+      "name": "<unnamed>",
+      "id": "afa884f0-daa1-4bc9-9a4e-d86cb1750e65",
+      "type": "sequence",
+      "subtrees": [
+        {
+          "name": "<unnamed>",
+          "id": "9d3199ad-d477-4a1b-bbf1-96813c017ec0",
+          "type": "scriptAction",
+          "script": [
+            "loc.wait = false"
+          ]
+        }
+      ],
+      "decorators": [
+        {
+          "id": "31498fed-7042-42f1-b12e-fcd3a210b362",
+          "type": "scriptCondition",
+          "name": "Switch to the next corner",
+          "script": [
+            "local i = 0",
+            "for _,point in pairs( loc.circles) do",
+            "\tif i==loc.NextCorner then",
+            "\t\tif self:GetPosition():Distance(point)<1 then",
+            "\t\t\treturn true",
+            "\t\tend",
+            "\tend",
+            "\ti=i+1",
+            "end",
+            "return false"
+          ]
+        },
+        {
+          "id": "9309f371-ac69-4e6b-9c88-1f79c2bcfeb8",
+          "type": "scriptCondition",
+          "name": "Are we waitng?",
+          "script": [
+            "return loc.wait"
+          ]
+        }
+      ],
+      "meta": {
+        "nodesInfo": [
+          {
+            "id": "afa884f0-daa1-4bc9-9a4e-d86cb1750e65",
+            "position": "1462.5,2463"
+          },
+          {
+            "id": "9d3199ad-d477-4a1b-bbf1-96813c017ec0",
+            "position": "1462.5,2588"
+          }
+        ],
+        "editorObjects": []
+      }
+    },
+    {
+      "name": "<unnamed>",
+      "id": "0ae48177-d089-4dd6-b321-51ec2d8c3b20",
+      "type": "selector",
+      "meta": {
+        "nodesInfo": [
+          {
+            "id": "0ae48177-d089-4dd6-b321-51ec2d8c3b20",
+            "position": "1737.5,2500.5"
+          }
+        ],
+        "editorObjects": []
+      },
+      "active": true
+    }
+  ],
   "meta": {
     "nodesInfo": [
       {
@@ -307,36 +328,20 @@
         "position": "1225,2225.5"
       },
       {
-        "id": "0bbcc97e-fefb-4554-b82b-6bff94464232",
-        "position": "1537.5,2038"
-      },
-      {
-        "id": "1bdefbdf-8be0-4030-9e1d-dd08a575192e",
-        "position": "1350,2350.5"
-      },
-      {
-        "id": "0ae48177-d089-4dd6-b321-51ec2d8c3b20",
-        "position": "1712.5,2213"
-      },
-      {
-        "id": "afa884f0-daa1-4bc9-9a4e-d86cb1750e65",
-        "position": "1650,2313"
-      },
-      {
-        "id": "edc88a9c-b400-4c15-8650-55c7be24d48e",
-        "position": "1537.5,2500.5"
-      },
-      {
-        "id": "9d3199ad-d477-4a1b-bbf1-96813c017ec0",
-        "position": "1712.5,2500.5"
+        "id": "d7ad6813-fe45-47e7-bf9d-76384af656a4",
+        "position": "1500,1963"
       },
       {
         "id": "7ffe3ee0-2eef-4bd0-93b0-8faa6b43f693",
-        "position": "1900,2425.5"
+        "position": "1362.5,2088"
       },
       {
-        "id": "6f454332-3cfa-403a-b418-1f5b33e7b248",
-        "position": "1962.5,2275.5"
+        "id": "edc88a9c-b400-4c15-8650-55c7be24d48e",
+        "position": "1487.5,2150.5"
+      },
+      {
+        "id": "1bdefbdf-8be0-4030-9e1d-dd08a575192e",
+        "position": "1612.5,2225.5"
       },
       {
         "id": "c984af80-a12b-4023-aeee-b22069851115",
