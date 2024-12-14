@@ -1,0 +1,14 @@
+{
+  "name": "behaviors_DPKR_occupy",
+  "trees": [
+    "Default.bt",
+    "DPKRsq\\Occupy.bt",
+    "DPKRsq\\Chill.bt"
+  ],
+  "initScripts": [
+    "DPKRsq\\DPKRsq.class.lua",
+    "classes.lua"
+  ],
+  "parameters": {},
+  "capabilities": {}
+}
