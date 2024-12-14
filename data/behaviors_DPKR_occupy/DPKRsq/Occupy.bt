@@ -29,6 +29,18 @@
       ]
     },
     {
+      "name": "Recalculate teams",
+      "id": "d019e76b-5965-47ab-b373-b12a264286a9",
+      "type": "scriptAction",
+      "script": [
+        "if #loc.locations ~= self:GetChildGroupCount() then",
+        "for member in self:GetChildGroups() do",
+        "loc.locations[member] = 0--TODO: detect location on path",
+        "end",
+        "end"
+      ]
+    },
+    {
       "name": "Path calculation",
       "id": "692d40b2-8af1-4d2e-9809-ede698ffb4e4",
       "type": "sequence",
@@ -40,6 +52,7 @@
           "script": [
             "if  loc.pathFuture ==nil  then",
             "loc.pathFuture = FindPath(loc.Leader:GetPosition(),arg.orderData.destination)",
+            "loc.slots = {}",
             "end"
           ]
         },
@@ -82,18 +95,6 @@
       ]
     },
     {
-      "name": "Recalculate teams",
-      "id": "d019e76b-5965-47ab-b373-b12a264286a9",
-      "type": "scriptAction",
-      "script": [
-        "if #loc.locations ~= self:GetChildGroupCount() then",
-        "for member in self:GetChildGroups() do",
-        "loc.locations[member] = 0--TODO: detect location on path",
-        "end",
-        "end"
-      ]
-    },
-    {
       "name": "DrawPath",
       "id": "55eb707c-ab19-4241-8751-94fdc1a525c8",
       "type": "scriptAction",
@@ -104,47 +105,112 @@
         "for n,point in pairs(loc.waypoints) do",
         "ai_core_public.draw.Circle(point+Vec3(0,0,2),1,1,1,0,1)",
         "end",
-        "--find min of locations start",
-        "local minloc = #loc.locations",
-        "for _,pos in pairs(loc.locations) do",
-        "if pos<minloc then",
-        "minloc = pos",
-        "end",
-        "end",
-        "if minloc+1<#loc.waypoints then",
-        "minloc = minloc+1--if we are not at the end yet we draw the side slots on the next one otherwise on us.",
-        "end",
-        "--find min of locations end",
-        "if minloc>=#loc.waypoints then",
-        "loc.Done = true",
-        "return true",
-        "end",
-        "",
-        "local position = loc.waypoints[minloc]--vector value",
-        "local dir",
-        "if minloc+1<#loc.waypoints then",
-        "dir = (loc.waypoints[minloc+1]-position):Normalized()",
-        "elseif minloc>0 then",
-        "dir = (position-loc.waypoints[minloc-1]):Normalized()",
-        "else",
-        "dir = Vec3(1,0,0)",
-        "end",
-        "local perp = dir:RightPerpendicularXY()",
-        "loc.slots = {}",
-        "for i = 0, #loc.locations-1 do",
-        "if i == 0 then ",
-        "loc.slots[0] = position",
-        "elseif i%2==1 then",
-        "loc.slots[i] = position + loc.TeamSeparation *(i+1)/2 * perp --The (i+1) is so that they dont alternate weirdly (non symetricly)",
-        "else",
-        "loc.slots[i] = position - loc.TeamSeparation *i/2*perp",
-        "end",
-        "end",
-        "",
+        "end"
+      ]
+    },
+    {
+      "name": "Slots calculation",
+      "id": "2cf2d527-c6cb-42e8-888b-7176b4be40dd",
+      "type": "sequence",
+      "subtrees": [
+        {
+          "name": "Recalculate Slots",
+          "id": "f5330910-11ec-4ca3-a94f-09a3dbe897aa",
+          "type": "scriptAction",
+          "script": [
+            "local minloc = #loc.locations",
+            "for _,pos in pairs(loc.locations) do",
+            "    if pos<minloc then",
+            "    minloc = pos",
+            "    end",
+            "end",
+            "if minloc+1<#loc.waypoints then",
+            "    minloc = minloc+1--if we are not at the end yet we draw the side slots on the next one otherwise on us.",
+            "end",
+            "--find min of locations end",
+            "if minloc>=#loc.waypoints then",
+            "    loc.Done = true",
+            "    return true",
+            "end",
+            "",
+            "local position = loc.waypoints[minloc]--vector value",
+            "local dir",
+            "if minloc+1<#loc.waypoints then",
+            "    dir = (loc.waypoints[minloc+1]-position):Normalized()",
+            "elseif minloc>0 then",
+            "    dir = (position-loc.waypoints[minloc-1]):Normalized()",
+            "else",
+            "    dir = Vec3(1,0,0)",
+            "end",
+            "local perp = dir:RightPerpendicularXY()",
+            "loc.slots = {}",
+            "loc.slotsFutures = {}",
+            "for i = 0, #loc.locations-1 do",
+            "    if i == 0 then ",
+            "    \tloc.slots[0] = position",
+            "    elseif i%2==1 then",
+            "        loc.slotsFutures[i] =FindPath(position, position + loc.TeamSeparation *(i+1)/2 * perp) --The (i+1) is so that they dont alternate weirdly (non symetricly)",
+            "    else",
+            "        loc.slotsFutures[i] = FindPath(position,position - loc.TeamSeparation *i/2*perp)",
+            "    end",
+            "end",
+            ""
+          ]
+        },
+        {
+          "name": "GetRecalculatedSlots",
+          "id": "cacf5e76-12a9-4caa-bf41-de313f1d997e",
+          "type": "waitUntil",
+          "condition": [
+            "for _,future in pairs(loc.slotsFutures) do ",
+            "    if not future:IsReady() then",
+            "        return false",
+            "    end",
+            "end",
+            "for i,future in pairs(loc.slotsFutures) do ",
+            "    loc.slots[i] = future:Value():PositionAlongPath(loc.TeamSeparation)",
+            "end",
+            "",
+            "",
+            "return true"
+          ]
+        }
+      ],
+      "decorators": [
+        {
+          "id": "7bb29ac8-ea99-43c1-98cc-880a494a5f49",
+          "type": "succeeder",
+          "name": "Always Succeed"
+        },
+        {
+          "id": "7ae71db1-a777-45a4-b5db-7d40631213a8",
+          "type": "scriptCondition",
+          "name": "Recalculation of slots needed?",
+          "script": [
+            "local minloc = #loc.locations",
+            "for _,pos in pairs(loc.locations) do",
+            "    if pos<minloc then",
+            "    minloc = pos",
+            "    end",
+            "end",
+            "if loc.currentLoc<minloc then",
+            "loc.currentLoc = minloc",
+            "loc.slots = {}",
+            "end",
+            "return loc.path ~=nil and arg.orderData ~=nil and arg.orderData.destination ~=nil and #loc.slots <#loc.locations"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Draw Slots",
+      "id": "167c5bf0-9390-423b-aa9e-32f75aff52f7",
+      "type": "scriptAction",
+      "script": [
+        "if  #loc.slots ==#loc.locations then",
         "for _,slot in pairs(loc.slots) do",
         "ai_core_public.draw.Circle(slot+Vec3(0,0,2),1,1,0,0,1)",
         "end",
-        "",
         "end"
       ]
     },
@@ -187,8 +253,7 @@
             "        return",
             "    end",
             "    team = team+1",
-            "end",
-            ""
+            "end"
           ]
         },
         {
@@ -218,7 +283,7 @@
           "type": "scriptCondition",
           "name": "Is movement slot available?",
           "script": [
-            "return loc.MovingTeam == nil and loc.waypoints ~=nil"
+            "return loc.MovingTeam == nil and loc.waypoints ~=nil and  #loc.slots ==#loc.locations"
           ]
         }
       ]
@@ -265,7 +330,11 @@
       },
       {
         "id": "77052674-e422-4288-8585-60fef9af3424",
-        "position": "1259.65811068017,551.738095238095"
+        "position": "1112.5,508.5"
+      },
+      {
+        "id": "d019e76b-5965-47ab-b373-b12a264286a9",
+        "position": "1287.5,521"
       },
       {
         "id": "692d40b2-8af1-4d2e-9809-ede698ffb4e4",
@@ -273,19 +342,31 @@
       },
       {
         "id": "12a83bea-54bc-4d50-a7ae-de9f24dc4104",
-        "position": "1275,846"
+        "position": "1100,733.5"
       },
       {
         "id": "05a55c3f-c30b-4013-83f5-f9e5f1cdeaa3",
-        "position": "1462.5,846"
-      },
-      {
-        "id": "d019e76b-5965-47ab-b373-b12a264286a9",
-        "position": "1725,583.5"
+        "position": "1187.5,821"
       },
       {
         "id": "55eb707c-ab19-4241-8751-94fdc1a525c8",
-        "position": "1875,583.5"
+        "position": "1675,608.5"
+      },
+      {
+        "id": "2cf2d527-c6cb-42e8-888b-7176b4be40dd",
+        "position": "1687.5,833.5"
+      },
+      {
+        "id": "f5330910-11ec-4ca3-a94f-09a3dbe897aa",
+        "position": "1587.5,1071"
+      },
+      {
+        "id": "cacf5e76-12a9-4caa-bf41-de313f1d997e",
+        "position": "1875,1071"
+      },
+      {
+        "id": "167c5bf0-9390-423b-aa9e-32f75aff52f7",
+        "position": "1875,608.5"
       },
       {
         "id": "04ad5dba-013f-4c6e-86b1-349908311728",
@@ -329,8 +410,10 @@
     "Leader": "nil",
     "SubordinatesData": "nil",
     "Subordinates": "nil",
-    "slots": "nil",
+    "slots": "return {}",
     "TeamSeparation": "30",
-    "Done": "return false"
+    "Done": "return false",
+    "slotsFutures": "nil",
+    "currentLoc": "return 0"
   }
 }
