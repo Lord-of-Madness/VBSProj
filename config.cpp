@@ -32,3 +32,50 @@ class CfgBehaviorTrees
 		name = "behaviors_jiri_maly"; // This is the btset name duplicated in the configuration
 	};
 };
+// Defines the new order as available from the Control AI - Military
+class CfgAvailableBehaviors
+{
+	class behaviors_DPKR_occupy
+	{
+		icon = "\vbs2\customer\plugins\behaviors_jiri_maly\data\behaviors_DPKR_occupy.paa";
+		allowRotate = true;
+
+
+		displayname = "Succesive Advance";
+		description = "Succesive Advance";				
+
+		//displayCondition = "\core\addons\plugins\generic_behaviors_public\data\scripts\waypointDisplayCondition.sqf";
+
+		orderName = "Succesive_Advance";
+		prepareActionMessage = "vbs2\vbs_plugins\ai\standard_behaviors\data\scripts\PrepareBTParameters.sqf";
+		
+		class RootBehaviors
+		{
+		  group[] = {"standard_behaviors", "GroupRoot"};
+		  entity[] = {"standard_behaviors", "EntityRoot"};
+		  vehicle[] = {"standard_behaviors", "VehicleRoot"};
+		};
+		
+		class Parameters
+		{
+			class orderParameters
+			{
+				displayName = "orderParameters";
+				value = "";
+				type = "table";
+			};
+			class reportCompletedToExternal
+			{
+				displayName = "reportCompletedToExternal";
+				value = "false";
+				type = "boolean";
+			};
+			class debugEnabled
+			{
+				displayName = "debugEnabled";
+				value = "true";
+				type = "boolean";
+			};
+		};
+	};
+};

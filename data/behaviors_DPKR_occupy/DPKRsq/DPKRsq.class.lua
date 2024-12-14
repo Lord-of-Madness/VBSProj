@@ -23,8 +23,8 @@ return {
                 tree = 'Chill',
                 parameters = {},
             },
-            Custom = {
-                description = 'Custom',
+            Succesive_Advance = {
+                description = 'Succesive Advance',
                 tree = 'Occupy',
                 parameters = {},
             }

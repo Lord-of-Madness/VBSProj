@@ -4,9 +4,12 @@
   "type": "supervisedParallel",
   "subtrees": [
     {
-      "name": "Wait Forever",
-      "id": "cc857240-5958-486f-baba-752e10f400da",
-      "type": "waitForever"
+      "name": "<unnamed>",
+      "id": "67ce5d77-ff67-4b14-8390-6f88d43ea10d",
+      "type": "waitUntil",
+      "condition": [
+        "return loc.Done"
+      ]
     },
     {
       "name": "Recalculate Leader",
@@ -26,78 +29,56 @@
       ]
     },
     {
-      "name": "False propagation obfuscator",
-      "id": "43baea11-36d0-4994-897d-01e5837c8eec",
-      "type": "selector",
+      "name": "Path calculation",
+      "id": "692d40b2-8af1-4d2e-9809-ede698ffb4e4",
+      "type": "sequence",
       "subtrees": [
         {
-          "name": "Path calculation",
-          "id": "692d40b2-8af1-4d2e-9809-ede698ffb4e4",
-          "type": "sequence",
-          "subtrees": [
-            {
-              "name": "Recalculate path",
-              "id": "12a83bea-54bc-4d50-a7ae-de9f24dc4104",
-              "type": "scriptAction",
-              "script": [
-                "if  loc.pathFuture ==nil  then",
-                "loc.pathFuture = FindPath(loc.Leader:GetPosition(),arg.orderData.destination)",
-                "end"
-              ]
-            },
-            {
-              "name": "GetRecalculatedPath",
-              "id": "05a55c3f-c30b-4013-83f5-f9e5f1cdeaa3",
-              "type": "waitUntil",
-              "condition": [
-                "if loc.pathFuture:IsReady() == true then",
-                "loc.path = loc.pathFuture:Value()",
-                "loc.pathFuture =nil",
-                "loc.waypoints = {}",
-                "local segmentLenght = 25",
-                "local count = 0",
-                "for loopvar = 0, loc.path:Length(), segmentLenght do",
-                "   loc.waypoints[count] = loc.path:PositionAlongPath(loopvar);",
-                "   count = count+1",
-                "end",
-                "return true",
-                "end",
-                "return false"
-              ]
-            }
-          ],
-          "decorators": [
-            {
-              "id": "9feb76c7-09f8-4b69-a508-23da4d4b2067",
-              "type": "scriptCondition",
-              "name": "Recalculation needed?",
-              "script": [
-                "return loc.path ==nil and arg.orderData ~=nil and arg.orderData.destination ~=nil --Add a check if the waypoint is changed maybe"
-              ]
-            }
+          "name": "Recalculate path",
+          "id": "12a83bea-54bc-4d50-a7ae-de9f24dc4104",
+          "type": "scriptAction",
+          "script": [
+            "if  loc.pathFuture ==nil  then",
+            "loc.pathFuture = FindPath(loc.Leader:GetPosition(),arg.orderData.destination)",
+            "end"
           ]
         },
         {
-          "name": "Wait Forever",
-          "id": "38853c79-4539-4181-a6c9-341f793e4513",
-          "type": "waitForever"
+          "name": "GetRecalculatedPath",
+          "id": "05a55c3f-c30b-4013-83f5-f9e5f1cdeaa3",
+          "type": "waitUntil",
+          "condition": [
+            "if loc.pathFuture:IsReady() == true then",
+            "loc.path = loc.pathFuture:Value()",
+            "loc.pathFuture =nil",
+            "loc.waypoints = {}",
+            "local segmentLenght = 25",
+            "local count = 0",
+            "for loopvar = 0, loc.path:Length(), segmentLenght do",
+            "   loc.waypoints[count] = loc.path:PositionAlongPath(loopvar);",
+            "   count = count+1",
+            "end",
+            "loc.waypoints[count] =arg.orderData.destination",
+            "return true",
+            "end",
+            "return false"
+          ]
         }
       ],
-      "active": true
-    },
-    {
-      "name": "DrawPath",
-      "id": "55eb707c-ab19-4241-8751-94fdc1a525c8",
-      "type": "scriptAction",
-      "script": [
-        "if loc.path ~=nil then",
-        "ai_core_public.draw.Path(loc.path,1,0,0,1,Vec3(0,0,2))",
-        "",
-        "for n,point in pairs(loc.waypoints) do",
-        "ai_core_public.draw.Circle(point+Vec3(0,0,2),1,1,1,0,1)",
-        "end",
-        "",
-        "end"
+      "decorators": [
+        {
+          "id": "b6be34e4-0b42-4d92-921e-bd41763046bd",
+          "type": "succeeder",
+          "name": "Always Succeed"
+        },
+        {
+          "id": "9feb76c7-09f8-4b69-a508-23da4d4b2067",
+          "type": "scriptCondition",
+          "name": "Recalculation needed?",
+          "script": [
+            "return loc.path ==nil and arg.orderData ~=nil and arg.orderData.destination ~=nil --Add a check if the waypoint is changed maybe"
+          ]
+        }
       ]
     },
     {
@@ -113,65 +94,134 @@
       ]
     },
     {
-      "name": "False propagation obfuscator",
-      "id": "2f863c48-2dd1-4778-854d-2ef579b6162e",
-      "type": "selector",
+      "name": "DrawPath",
+      "id": "55eb707c-ab19-4241-8751-94fdc1a525c8",
+      "type": "scriptAction",
+      "script": [
+        "if loc.path ~=nil then",
+        "ai_core_public.draw.Path(loc.path,1,0,0,1,Vec3(0,0,2))",
+        "",
+        "for n,point in pairs(loc.waypoints) do",
+        "ai_core_public.draw.Circle(point+Vec3(0,0,2),1,1,1,0,1)",
+        "end",
+        "--find min of locations start",
+        "local minloc = #loc.locations",
+        "for _,pos in pairs(loc.locations) do",
+        "if pos<minloc then",
+        "minloc = pos",
+        "end",
+        "end",
+        "if minloc+1<#loc.waypoints then",
+        "minloc = minloc+1--if we are not at the end yet we draw the side slots on the next one otherwise on us.",
+        "end",
+        "--find min of locations end",
+        "if minloc>=#loc.waypoints then",
+        "loc.Done = true",
+        "return true",
+        "end",
+        "",
+        "local position = loc.waypoints[minloc]--vector value",
+        "local dir",
+        "if minloc+1<#loc.waypoints then",
+        "dir = (loc.waypoints[minloc+1]-position):Normalized()",
+        "elseif minloc>0 then",
+        "dir = (position-loc.waypoints[minloc-1]):Normalized()",
+        "else",
+        "dir = Vec3(1,0,0)",
+        "end",
+        "local perp = dir:RightPerpendicularXY()",
+        "loc.slots = {}",
+        "for i = 0, #loc.locations-1 do",
+        "if i == 0 then ",
+        "loc.slots[0] = position",
+        "elseif i%2==1 then",
+        "loc.slots[i] = position + loc.TeamSeparation *(i+1)/2 * perp --The (i+1) is so that they dont alternate weirdly (non symetricly)",
+        "else",
+        "loc.slots[i] = position - loc.TeamSeparation *i/2*perp",
+        "end",
+        "end",
+        "",
+        "for _,slot in pairs(loc.slots) do",
+        "ai_core_public.draw.Circle(slot+Vec3(0,0,2),1,1,0,0,1)",
+        "end",
+        "",
+        "end"
+      ]
+    },
+    {
+      "name": "-",
+      "id": "04ad5dba-013f-4c6e-86b1-349908311728",
+      "type": "sequence",
       "subtrees": [
         {
-          "name": "-",
-          "id": "04ad5dba-013f-4c6e-86b1-349908311728",
-          "type": "sequence",
-          "subtrees": [
-            {
-              "name": "TODO forge data for reference",
-              "id": "07b1df52-a809-4cd7-817e-c8097dcd5b29",
-              "type": "scriptAction",
-              "script": [
-                "local min = 99999",
-                "local minteam",
-                "for group in self:GetChildGroups() do",
-                "    if loc.locations[group]<min then",
-                "        min = loc.locations[group]",
-                "        minteam = group",
-                "    end",
-                "end",
-                "loc.GroupToMove = minteam"
-              ]
-            },
-            {
-              "name": "Clear area for all subordinates",
-              "id": "70db8549-ee79-43dc-adbc-b3a12f2f103a",
-              "type": "reference",
-              "target": [
-                "standard_behaviors",
-                "ExecuteSubordinateOrder"
-              ],
-              "arguments": {
-                "orderData": "return {orderName = \"Advance\"}",
-                "subordinates": "return loc.GroupToMove",
-                "subordinateData": "return  {}",
-                "update": "return false"
-              }
-            }
-          ],
-          "decorators": [
-            {
-              "id": "06cdba28-6b55-49c4-8276-f8166a380aa1",
-              "type": "scriptCondition",
-              "name": "Is movement slot available?",
-              "script": [
-                "return loc.MovingTeam == nil"
-              ]
-            }
+          "name": "Forge data for reference",
+          "id": "07b1df52-a809-4cd7-817e-c8097dcd5b29",
+          "type": "scriptAction",
+          "script": [
+            "local min = 99999",
+            "local minteam",
+            "for group in self:GetChildGroups() do",
+            "    if loc.locations[group]<min then",
+            "        min = loc.locations[group]",
+            "        minteam = group",
+            "    end",
+            "end",
+            "loc.MovingTeam = minteam",
+            "loc.Subordinates = {}",
+            "table.insert(loc.Subordinates, minteam)",
+            "loc.SubordinatesData = InternalTable()",
+            "local team = 0 --send team to its appropriate slot",
+            "for key,value in pairs(loc.locations) do",
+            "    if key == minteam then",
+            "        if min+1<#loc.waypoints then",
+            "            loc.SubordinatesData[minteam] = {",
+            "                destination = loc.slots[team],",
+            "                heading = (loc.waypoints[min+1]-loc.slots[team]):AngleTo(Vec3(1,0,0))",
+            "            }",
+            "        else",
+            "            loc.SubordinatesData[minteam] = {",
+            "                destination = loc.slots[team],",
+            "                heading = arg.orderData.heading",
+            "            }",
+            "        end",
+            "        return",
+            "    end",
+            "    team = team+1",
+            "end",
+            ""
           ]
         },
         {
-          "name": "Wait Forever",
-          "id": "897ad745-3cd4-4d63-91fc-bbcf65f97122",
-          "type": "waitForever"
+          "name": "Move subordinates",
+          "id": "70db8549-ee79-43dc-adbc-b3a12f2f103a",
+          "type": "reference",
+          "target": [
+            "standard_behaviors",
+            "ExecuteSubordinateOrder"
+          ],
+          "arguments": {
+            "orderData": "return {orderName = \"Advance\"}",
+            "subordinates": "return loc.Subordinates",
+            "subordinateData": "return loc.SubordinatesData",
+            "update": "return false"
+          }
         }
       ],
-      "active": true
+      "decorators": [
+        {
+          "id": "6d470567-81de-445b-afac-36e02e500c7a",
+          "type": "succeeder",
+          "name": "Always Succeed"
+        },
+        {
+          "id": "06cdba28-6b55-49c4-8276-f8166a380aa1",
+          "type": "scriptCondition",
+          "name": "Is movement slot available?",
+          "script": [
+            "return loc.MovingTeam == nil and loc.waypoints ~=nil"
+          ]
+        }
+      ]
     },
     {
       "name": "DrawLine",
@@ -190,78 +240,77 @@
         "\tend",
         "end"
       ]
+    },
+    {
+      "name": "Check if movement finished",
+      "id": "837b4114-e2a1-4768-ba72-181501c27744",
+      "type": "scriptAction",
+      "script": [
+        "if loc.MovingTeam~= nil and loc.MovingTeam:IsFormationInPosition() then",
+        "loc.locations[loc.MovingTeam] = loc.locations[loc.MovingTeam]+1",
+        "loc.MovingTeam = nil",
+        "end"
+      ]
     }
   ],
   "meta": {
     "nodesInfo": [
       {
         "id": "bb7acc50-d490-4bdb-8ace-e6455447c2ff",
-        "position": "1825,305"
+        "position": "1825,333.5"
       },
       {
-        "id": "cc857240-5958-486f-baba-752e10f400da",
-        "position": "1062.5,342.5"
+        "id": "67ce5d77-ff67-4b14-8390-6f88d43ea10d",
+        "position": "1062.5,408.5"
       },
       {
         "id": "77052674-e422-4288-8585-60fef9af3424",
-        "position": "1259.65811068017,523.238095238095"
-      },
-      {
-        "id": "43baea11-36d0-4994-897d-01e5837c8eec",
-        "position": "1500,555"
+        "position": "1259.65811068017,551.738095238095"
       },
       {
         "id": "692d40b2-8af1-4d2e-9809-ede698ffb4e4",
-        "position": "1387.5,655"
+        "position": "1475,571"
       },
       {
         "id": "12a83bea-54bc-4d50-a7ae-de9f24dc4104",
-        "position": "1275,817.5"
+        "position": "1275,846"
       },
       {
         "id": "05a55c3f-c30b-4013-83f5-f9e5f1cdeaa3",
-        "position": "1462.5,817.5"
-      },
-      {
-        "id": "38853c79-4539-4181-a6c9-341f793e4513",
-        "position": "1562.5,742.5"
-      },
-      {
-        "id": "55eb707c-ab19-4241-8751-94fdc1a525c8",
-        "position": "1725,555"
+        "position": "1462.5,846"
       },
       {
         "id": "d019e76b-5965-47ab-b373-b12a264286a9",
-        "position": "1887.5,555"
+        "position": "1725,583.5"
       },
       {
-        "id": "2f863c48-2dd1-4778-854d-2ef579b6162e",
-        "position": "2050,542.5"
+        "id": "55eb707c-ab19-4241-8751-94fdc1a525c8",
+        "position": "1875,583.5"
       },
       {
         "id": "04ad5dba-013f-4c6e-86b1-349908311728",
-        "position": "1987.5,667.5"
+        "position": "2050,558.5"
       },
       {
         "id": "07b1df52-a809-4cd7-817e-c8097dcd5b29",
-        "position": "1762.5,855"
+        "position": "1912.5,771"
       },
       {
         "id": "70db8549-ee79-43dc-adbc-b3a12f2f103a",
-        "position": "2000,817.5"
-      },
-      {
-        "id": "897ad745-3cd4-4d63-91fc-bbcf65f97122",
-        "position": "2400,830"
+        "position": "2212.5,796"
       },
       {
         "id": "c47d1afc-4596-449d-8157-12c572064899",
-        "position": "2287.5,517.5"
+        "position": "2287.5,546"
+      },
+      {
+        "id": "837b4114-e2a1-4768-ba72-181501c27744",
+        "position": "2525,558.5"
       }
     ],
     "editorObjects": [],
-    "canvasSize": "3840,2567.5",
-    "gridPadding": "0,5"
+    "canvasSize": "3840,2596",
+    "gridPadding": "0,8.50000000000034"
   },
   "parameters": [
     {
@@ -278,7 +327,10 @@
     "pathFuture": "nil",
     "waypoints": "nil",
     "Leader": "nil",
-    "GroupToMove": "nil",
-    "STMData": "nil"
+    "SubordinatesData": "nil",
+    "Subordinates": "nil",
+    "slots": "nil",
+    "TeamSeparation": "30",
+    "Done": "return false"
   }
 }
